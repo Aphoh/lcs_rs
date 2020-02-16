@@ -1,20 +1,20 @@
-use suffix::SuffixTable;
 use std::*;
 use std::string::String;
 use std::collections::HashSet;
+use bio::data_structures::suffix_array::{suffix_array, lcp};
 
 const K: u32 = 2;
 
 fn main() {
-    let data = vec!["093AB", "0AB435AB", "0K093KABB"];
+    let data = vec![b"093AB", b"0AB435AB", b"0C093CABB"];
     let n_strings = data.len(); 
     let total_length : usize = data.iter().map(|s| s.len()).sum(); 
-    let mut combined = String::with_capacity(total_length);
+    let mut combined : Vec<u8> = vec![0u8, total_length + n_strings]
     let mut sentinel_pos_set : HashSet<usize> = HashSet::new();
     let mut sentinel_pos : Vec<usize> = Vec::new();
     for s in data {
         combined.push_str(&s);
-        combined.push('$');
+        combined.push(b'$');
         let sent_ind = combined.len() - 1; 
         sentinel_pos.push(sent_ind);
         sentinel_pos_set.insert(sent_ind);
@@ -23,13 +23,12 @@ fn main() {
     print!("{}\n", combined);
 
 
-    let suffix_table: SuffixTable = SuffixTable::new(&combined);
-    let suffix_array = suffix_table.table();
-    let lcp_array: Vec<u32> = suffix_table.lcp_lens();
+    let suffix_array = suffix_array(&combined); 
+    let lcp_array = lcp(&combined, &suffix_array);
    
-    let l0 = get_l0(&suffix_table, &sentinel_pos_set, &sentinel_pos);
+    let l0 = get_l0(&combined, &suffix_array, &sentinel_pos_set, &sentinel_pos);
 
-    print!("{:?}\n", suffix_table);
+    print!("{:?}\n", suffix_array);
     print!("L0: {}\n", &l0);
     for (i, l) in lcp_array.iter().enumerate() {
         println!("lcp_array[{}]: {}", i, l);
@@ -109,13 +108,13 @@ fn count_nonzero(vec: &Vec<u32>) -> u32 {
     c
 }
 
-fn get_l0(suffix_table: &SuffixTable, 
+fn get_l0(text: &String,
+          suffix_array: &SuffixArray, 
           sentinel_pos_set: &HashSet<usize>, 
           sentinel_pos: &Vec<usize>) -> usize {
     
     let mut present_strs = HashSet::<usize>::new(); 
-    let total_len = suffix_table.text().len();
-    let suffix_array = suffix_table.table();
+    let total_len = text.len(); 
 
     //Find L_0
     let mut n_strings: Vec<usize> = vec![(K as usize) + 1; total_len];
