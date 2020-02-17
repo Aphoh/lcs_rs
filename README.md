@@ -21,6 +21,8 @@ LCS found with length 27648
 ### Benchmarks
 
 Varying K:
+
+
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
 | `lcs_rs -k 2 sample.1 ... sample.10` | 84.3 ± 5.2 | 78.4 | 103.8 | 1.00 |
@@ -33,6 +35,7 @@ Varying K:
 | `lcs_rs -k 9 sample.1 ... sample.10` | 183.7 ± 2.8 | 178.1 | 189.1 | 2.18 ± 0.14 |
 
 Varying the number of files: 
+
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
 | `lcs_rs -k 2 sample.1 ... sample.2` | 9.2 ± 1.3 | 7.8 | 14.4 | 1.00 |
