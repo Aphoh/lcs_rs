@@ -1,35 +1,35 @@
 use std::*;
 use std::string::String;
 use std::collections::HashSet;
-use bio::data_structures::suffix_array::{suffix_array, lcp};
+use bio::data_structures::suffix_array::{suffix_array, RawSuffixArray, LCPArray};
+use bio::data_structures::smallints::SmallInts;
+use std::ops::Deref;
 
 const K: u32 = 2;
 
 fn main() {
-    let data = vec![b"093AB", b"0AB435AB", b"0C093CABB"];
+    let data = vec![b"093AB".to_vec(), b"0AB435AB".to_vec(), b"0C093CABB".to_vec()];
     let n_strings = data.len(); 
     let total_length : usize = data.iter().map(|s| s.len()).sum(); 
-    let mut combined : Vec<u8> = vec![0u8, total_length + n_strings]
-    let mut sentinel_pos_set : HashSet<usize> = HashSet::new();
+    let mut combined : Vec<u8> = Vec::with_capacity(total_length + n_strings); 
     let mut sentinel_pos : Vec<usize> = Vec::new();
     for s in data {
-        combined.push_str(&s);
+        combined.extend(s);
         combined.push(b'$');
         let sent_ind = combined.len() - 1; 
         sentinel_pos.push(sent_ind);
-        sentinel_pos_set.insert(sent_ind);
     }
 
-    print!("{}\n", combined);
 
-
-    let suffix_array = suffix_array(&combined); 
-    let lcp_array = lcp(&combined, &suffix_array);
+    let suffix_array: RawSuffixArray = suffix_array(&combined); 
+    let lcp_array: LCPArray = lcp(&combined, &suffix_array);
    
-    let l0 = get_l0(&combined, &suffix_array, &sentinel_pos_set, &sentinel_pos);
+    let l0 = get_l0(&combined, &suffix_array, &sentinel_pos);
 
-    print!("{:?}\n", suffix_array);
-    print!("L0: {}\n", &l0);
+    unsafe {
+        print_suffix_array(&suffix_array, &lcp_array, &combined);
+    }
+
     for (i, l) in lcp_array.iter().enumerate() {
         println!("lcp_array[{}]: {}", i, l);
     }
@@ -71,19 +71,26 @@ fn main() {
             }
         }
     }
-    print!("{:0>2?}\n", delta_ls);
-    print!("{:0>2?}\n", delta_rs);
    
     let mut maxi = 0usize;
-    let mut maxv = 0u32;
+    let mut maxv = 0isize;
     let result = delta_ls.iter().zip(&delta_rs).enumerate()
-        .map(|(i, (&l, &r))| (i, lcp_array[(l + 1)..r].iter().min().unwrap_or(&0)));
+        .map(|(i, (&l, &r))| {
+            let mut min = isize::MAX;
+            for k in (l+1)..r {
+                if let Some(v) = lcp_array.get(k) {
+                    min = if v < min { v } else { min }
+                }
+            }
+            (i, min)
+
+        });
 
     println!("(delta, min_lcp) pairs:");
     for (i, lcp_min) in result {
         println!("({}:{}, {})", &delta_ls[i], &delta_rs[i], &lcp_min);
-        if lcp_min > &maxv {
-            maxv = *lcp_min;
+        if lcp_min > maxv {
+            maxv = lcp_min;
             maxi = i;
         }
     }
@@ -94,8 +101,9 @@ fn main() {
     let lcs_end = lcs_start + (maxv as usize);
 
     let lcs = &combined[lcs_start..lcs_end];
-    println!("Result: {:?}", lcs);
-        
+    unsafe {
+        println!("Result: {:?}", str::from_utf8_unchecked(lcs));
+    }
 }
 
 fn count_nonzero(vec: &Vec<u32>) -> u32 {
@@ -108,9 +116,8 @@ fn count_nonzero(vec: &Vec<u32>) -> u32 {
     c
 }
 
-fn get_l0(text: &String,
-          suffix_array: &SuffixArray, 
-          sentinel_pos_set: &HashSet<usize>, 
+fn get_l0(text: &Vec<u8>,
+          suffix_array: &RawSuffixArray, 
           sentinel_pos: &Vec<usize>) -> usize {
     
     let mut present_strs = HashSet::<usize>::new(); 
@@ -141,6 +148,47 @@ fn get_string_index(pos: usize, sentinel_pos: &Vec<usize>) -> Option<usize> {
     }
 
     if sentinel_pos[i] == pos { None } else { Some(i) }
+}
+
+fn print_suffix_array(pos: &RawSuffixArray, lcp_array: &LCPArray, text: &Vec<u8>) {
+    unsafe {
+        let text_str = str::from_utf8_unchecked(text);
+        println!("Suffix Array for {:?}", text_str);
+        for i in 0..text_str.len() {
+            println!("sa[{:0>2}] : {:0>2} | lcp {:0>2} | {:?}", 
+                     &i, 
+                     &pos[i], 
+                     lcp_array.get(i).unwrap_or(-999), 
+                     &text_str[pos[i]..text_str.len()]);
+        }
+    }
+} 
+
+pub fn lcp<SA: Deref<Target = RawSuffixArray>>(text: &[u8], pos: SA) -> LCPArray {
+    assert_eq!(text.len(), pos.len());
+    let n = text.len();
+    let sentinel = text[n - 1];
+
+    // provide the lexicographical rank for each suffix
+    let mut rank: Vec<usize> = iter::repeat(0).take(n).collect();
+    for (r, p) in pos.iter().enumerate() {
+        rank[*p] = r;
+    }
+
+    let mut lcp = SmallInts::from_elem(-1, n + 1);
+    let mut l = 0usize;
+    for (p, &r) in rank.iter().enumerate().take(n - 1) {
+        // since the sentinel has rank 0 and is excluded above,
+        // we will never have a negative index below
+        let pred = pos[r - 1];
+        while pred + l < n && p + l < n && text[p + l] == text[pred + l] && text[p + 1] != sentinel && text[pred + l] != sentinel {
+            l += 1;
+        }
+        lcp.set(r, l as isize);
+        l = if l > 0 { l - 1 } else { 0 };
+    }
+
+    lcp
 }
 
 /*fn as_hex(bytes: Vec<u8>) -> String {
