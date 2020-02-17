@@ -306,6 +306,11 @@ name = "lcs_rs"
 version = "0.1.0"
 dependencies = [
  "bio",
+ "bit-set",
+ "bv",
+ "num-integer",
+ "num-traits",
+ "vec_map",
 ]
 
 [[package]]
