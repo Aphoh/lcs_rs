@@ -208,7 +208,7 @@ fn count_nonzero(vec: &Vec<u32>) -> u32 {
     c
 }
 
-fn get_string_index(pos: usize, sentinel_pos: &Vec<usize>) -> Option<usize> {
+pub fn get_string_index(pos: usize, sentinel_pos: &Vec<usize>) -> Option<usize> {
     let mut i = 0;
     while pos > sentinel_pos[i] {
         i += 1;
