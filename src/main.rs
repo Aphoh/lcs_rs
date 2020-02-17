@@ -1,16 +1,31 @@
 use bio::data_structures::suffix_array::{LCPArray, RawSuffixArray};
+use clap::{Arg, App};
 use std::io::{Error, ErrorKind};
-use std::string::String;
 use std::*;
-use std::{env, fs, io};
+use std::{fs, io};
 mod lcs;
 
-const K: u32 = 2;
+const K_DEFAULT: u32 = 2;
 const DEBUG: bool = false;
 
 fn main() -> Result<(), Error> {
-    let files = env::args().collect::<Vec<_>>();
-    let files: Vec<&str> = files.iter().skip(1).map(|x| &**x).collect();
+    let matches = App::new("lcs_rs")
+        .version("0.1.0")
+        .author("William Arnold <willarnold@berkeley.edu>")
+        .about("Finds the longest common byte subsequence in an arbitrary number of files")
+        .arg(Arg::with_name("min-files")
+             .short("k")
+             .long("min-files")
+             .help("The minimum number of files the subsequence must be present in")
+             .default_value("2"))
+        .arg(Arg::with_name("files")
+            .help("The files to search through")
+            .required(true).min_values(1))
+        .get_matches();
+
+    let k = matches.value_of("min-files").map(|k| k.parse::<u32>()).unwrap_or(Ok(K_DEFAULT)).unwrap();
+    let files: Vec<_> = matches.values_of("files").unwrap().collect();
+    println!("{:?}", files);
 
     let mut data: Vec<Vec<u16>> = Vec::with_capacity(files.len());
     for f in &files {
@@ -24,10 +39,10 @@ fn main() -> Result<(), Error> {
         }
     }
 
-    if data.len() < K as usize {
+    if data.len() < k as usize {
         return Err(Error::new(
             ErrorKind::InvalidInput,
-            format!("You must pass {} files as arguments", K),
+            format!("You must pass {} files as arguments", k),
         ));
     }
 
@@ -47,10 +62,10 @@ fn main() -> Result<(), Error> {
     let suffix_array: RawSuffixArray = lcs::suffix_array_u16(&combined, &(n_strings as u16));
     let lcp_array: LCPArray = lcs::lcp_unique_sentinels(&combined, &suffix_array);
 
-    let l0 = lcs::get_l0(&combined, &suffix_array, &K, &sentinel_pos);
+    let l0 = lcs::get_l0(&combined, &suffix_array, &k, &sentinel_pos);
 
     let (delta_ls, delta_rs) =
-        lcs::compute_deltas(&n_strings, &l0, &K, &suffix_array, &sentinel_pos);
+        lcs::compute_deltas(&n_strings, &l0, &k, &suffix_array, &sentinel_pos);
 
     let (maxi, maxv) = lcs::max_min_lcp(&delta_ls, &delta_rs, &lcp_array);
 
@@ -87,8 +102,8 @@ fn file_offsets_in_delta<'a>(files: &[&'a str],
                              delta_l: &usize, 
                              delta_r: &usize) -> Vec<(&'a str, usize)> {
 
-    let mut file_counts = vec![0usize, files.len()];
-    let mut offsets     = vec![0usize, files.len()];
+    let mut file_counts = vec![0usize; files.len()];
+    let mut offsets     = vec![0usize; files.len()];
 
     for i in *delta_l..*delta_r {
         let suff_ind = suffix_array[i];

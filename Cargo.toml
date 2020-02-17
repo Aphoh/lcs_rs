@@ -2,6 +2,10 @@
 name = "lcs_rs"
 version = "0.1.0"
 authors = ["William Arnold <will748@gmail.com>"]
+description = "A longest common byte sequence finder for arbitrary files, in *linear time*"
+readme = "README.md"
+homepage = "https://gitlab.com/aphoh/lcs_rs"
+repository = "https://gitlab.com/aphoh/lcs_rs"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -13,3 +17,5 @@ num-traits  = "*"
 vec_map     = "*"
 bv          = "*"
 bit-set     = "*"
+
+clap        = "2.33.0"
