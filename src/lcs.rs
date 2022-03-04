@@ -1,5 +1,4 @@
-use bio::data_structures::smallints::SmallInts;
-use bio::data_structures::suffix_array::{LCPArray, RawSuffixArray};
+use bio::data_structures::suffix_array::RawSuffixArray;
 use std::collections::HashSet;
 use std::ops::Deref;
 use std::*;
@@ -97,7 +96,7 @@ pub fn compute_deltas(
 pub fn max_min_lcp(
     delta_ls: &Vec<usize>,
     delta_rs: &Vec<usize>,
-    lcp_array: &LCPArray,
+    lcp_array: &Vec<isize>,
 ) -> (usize, isize) {
     let result = delta_ls
         .iter()
@@ -107,7 +106,7 @@ pub fn max_min_lcp(
             let mut min = isize::MAX;
             for k in (l + 1)..r {
                 if let Some(v) = lcp_array.get(k) {
-                    min = if v < min { v } else { min }
+                    min = if v < &min { *v } else { min }
                 }
             }
             (i, min)
@@ -127,7 +126,10 @@ pub fn max_min_lcp(
 
 /* Computes the lcp array values in O(n) time, considering all sentinels as unique characters.
  */
-pub fn lcp_unique_sentinels<SA: Deref<Target = RawSuffixArray>>(text: &[u16], pos: SA) -> LCPArray {
+pub fn lcp_unique_sentinels<SA: Deref<Target = RawSuffixArray>>(
+    text: &[u16],
+    pos: SA,
+) -> Vec<isize> {
     assert_eq!(text.len(), pos.len());
     let n = text.len();
     let sentinel = text[n - 1];
@@ -138,7 +140,8 @@ pub fn lcp_unique_sentinels<SA: Deref<Target = RawSuffixArray>>(text: &[u16], po
         rank[*p] = r;
     }
 
-    let mut lcp = SmallInts::from_elem(-1, n + 1);
+    let mut lcp: Vec<isize> = std::iter::repeat(-1).take(n + 1).collect();
+    //let mut lcp = SmallInts::from_elem(-1, n + 1);
     let mut l = 0usize;
     for (p, &r) in rank.iter().enumerate().take(n - 1) {
         // since the sentinel has rank 0 and is excluded above,
@@ -152,7 +155,8 @@ pub fn lcp_unique_sentinels<SA: Deref<Target = RawSuffixArray>>(text: &[u16], po
         {
             l += 1;
         }
-        lcp.set(r, l as isize);
+        lcp[r] = l as isize;
+        //lcp.set(r, l as isize);
         l = if l > 0 { l - 1 } else { 0 };
     }
 

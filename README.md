@@ -20,33 +20,43 @@ LCS found with length 27648
 
 ### Benchmarks
 
-Varying K:
+Varying the total number of files:
 
+| Command | Mean [ms] | Min [ms] | Max [ms]|
+|:----------------------------------------|-------:|--------:|--------:|
+| `lcs_rs -k 2 sample.1 ... sample.2`  | 3.7359 |  3.7367 |  3.7374 |                           
+| `lcs_rs -k 2 sample.1 ... sample.3`  | 6.8810 |  6.8864 |  6.8938 |                          
+| `lcs_rs -k 2 sample.1 ... sample.4`  | 8.9721 |  8.9764 |  8.9806 |                          
+| `lcs_rs -k 2 sample.1 ... sample.5`  | 11.269 |  11.274 |  11.279 |                          
+| `lcs_rs -k 2 sample.1 ... sample.6`  | 13.757 |  13.829 |  13.924 |                          
+| `lcs_rs -k 2 sample.1 ... sample.7`  | 15.674 |  15.697 |  15.721 |                          
+| `lcs_rs -k 2 sample.1 ... sample.8`  | 19.345 |  19.395 |  19.455 |                          
+| `lcs_rs -k 2 sample.1 ... sample.9`  | 20.054 |  20.121 |  20.203 |                          
+| `lcs_rs -k 2 sample.1 ... sample.10` | 21.471 |  21.482 |  21.494 | 
 
-| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
-|:---|---:|---:|---:|---:|
-| `lcs_rs -k 2 sample.1 ... sample.10` | 84.3 ± 5.2 | 78.4 | 103.8 | 1.00 |
-| `lcs_rs -k 3 sample.1 ... sample.10` | 97.5 ± 3.1 | 91.8 | 104.3 | 1.16 ± 0.08 |
-| `lcs_rs -k 4 sample.1 ... sample.10` | 107.3 ± 3.0 | 103.1 | 113.9 | 1.27 ± 0.09 |
-| `lcs_rs -k 5 sample.1 ... sample.10` | 121.2 ± 3.7 | 115.5 | 129.6 | 1.44 ± 0.10 |
-| `lcs_rs -k 6 sample.1 ... sample.10` | 135.3 ± 3.1 | 128.9 | 141.9 | 1.61 ± 0.11 |
-| `lcs_rs -k 7 sample.1 ... sample.10` | 147.8 ± 6.1 | 141.7 | 169.2 | 1.75 ± 0.13 |
-| `lcs_rs -k 8 sample.1 ... sample.10` | 164.6 ± 6.5 | 158.3 | 186.9 | 1.95 ± 0.14 |
-| `lcs_rs -k 9 sample.1 ... sample.10` | 183.7 ± 2.8 | 178.1 | 189.1 | 2.18 ± 0.14 |
+Scaling for $n$: 
 
-Varying the number of files: 
+![](benches/n_scaling.png)
 
-| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
-|:---|---:|---:|---:|---:|
-| `lcs_rs -k 2 sample.1 ... sample.2` | 9.2 ± 1.3 | 7.8 | 14.4 | 1.00 |
-| `lcs_rs -k 2 sample.1 ... sample.3` | 23.2 ± 1.2 | 21.7 | 27.5 | 2.52 ± 0.38 |
-| `lcs_rs -k 2 sample.1 ... sample.4` | 33.0 ± 1.2 | 31.3 | 38.4 | 3.59 ± 0.53 |
-| `lcs_rs -k 2 sample.1 ... sample.5` | 40.8 ± 1.7 | 38.5 | 47.7 | 4.43 ± 0.66 |
-| `lcs_rs -k 2 sample.1 ... sample.6` | 51.4 ± 2.0 | 48.7 | 57.8 | 5.58 ± 0.82 |
-| `lcs_rs -k 2 sample.1 ... sample.7` | 60.2 ± 2.5 | 56.5 | 68.7 | 6.54 ± 0.97 |
-| `lcs_rs -k 2 sample.1 ... sample.8` | 69.5 ± 2.7 | 65.6 | 76.4 | 7.55 ± 1.11 |
-| `lcs_rs -k 2 sample.1 ... sample.9` | 75.8 ± 2.9 | 72.0 | 82.8 | 8.23 ± 1.21 |
-| `lcs_rs -k 2 sample.1 ... sample.10` | 80.4 ± 2.6 | 77.2 | 90.8 | 8.73 ± 1.27 |
+Varying the minimum number of files the common substring must be in:
+
+| Command | Mean [ms] | Min [ms] | Max [ms]|
+|:----------------------------------------|-------:|--------:|--------:|
+| `lcs_rs -k 2 sample.1 ... sample.10`    | 21.245 |  21.258 |  21.274 |                          
+| `lcs_rs -k 3 sample.1 ... sample.10`    | 21.172 |  21.232 |  21.327 |                          
+| `lcs_rs -k 4 sample.1 ... sample.10`    | 21.910 |  21.921 |  21.934 |                          
+| `lcs_rs -k 5 sample.1 ... sample.10`    | 22.102 |  22.117 |  22.133 |                          
+| `lcs_rs -k 6 sample.1 ... sample.10`    | 21.869 |  21.889 |  21.913 |                          
+| `lcs_rs -k 7 sample.1 ... sample.10`    | 21.637 |  21.660 |  21.686 |                          
+| `lcs_rs -k 8 sample.1 ... sample.10`    | 21.903 |  21.923 |  21.947 |                          
+| `lcs_rs -k 9 sample.1 ... sample.10`    | 23.170 |  23.180 |  23.192 |                          
+| `lcs_rs -k 10 sample.1 ... sample.10`   | 23.802 |  23.833 |  23.866 |                           
+
+Violin Plot for $k$: 
+
+![](benches/k_scaling.png)
+
+Which is nicely clustered around 20-23ms
 
 We see very linear scaling with each! $`\mathcal{O}(n)`$ acheived!
 
