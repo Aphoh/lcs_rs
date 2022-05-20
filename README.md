@@ -2,7 +2,7 @@
 This project is a rust implementation of a solution to the following problem:
 
 
-Given $`N`$ binary files of combined total length $`L`$, find the longest common binary subsequence which is present in at least $`K`$ of those files.
+Given $N$ binary files of combined total length $L$, find the longest common binary subsequence which is present in at least $K$ of those files.
 
 This implementation uses a suffix array construction algorithm based on that in [rust-bio](https://github.com/rust-bio/rust-bio), 
 as well as several ideas from the algorithm presented in [^fn1].
@@ -58,7 +58,7 @@ Violin Plot for $k$:
 
 Which is nicely clustered around 20-23ms
 
-We see very linear scaling with each! $`\mathcal{O}(n)`$ acheived!
+We see very linear scaling with each! $\mathcal{O}(n)$ acheived!
 
 ### Notes on implementation
 
@@ -69,7 +69,7 @@ The basic structure of this implementation is as follows:
 3. Append all files terminated with the sentinel
 4. Use the custom `u16` implementation of [SAIS](https://zork.net/~st/jottings/sais.html) to construct the suffix array from the combined files
 5. Build the Longest Common Prefix array
-6. Scan across the suffix array for subsequences which are present in at least $`K`$ of the files
+6. Scan across the suffix array for subsequences which are present in at least $K$ of the files
 7. Compute the minimum LCP for all prefixes in those subseqences
 8. Find the subsequence with the maximum min LCP
 9. Determine and return the resulting files present in that subsequence of the suffix array with their offsets
